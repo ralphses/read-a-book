@@ -82,6 +82,7 @@ public class BookController {
     }
 
     @PutMapping(path = "/de-activate/{bookCode}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER')")
     public ResponseEntity<ResponseMessage> deactivateBook(@PathVariable String bookCode) {
         bookService.deactivateBook(bookCode);
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));

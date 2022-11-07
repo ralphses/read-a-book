@@ -53,16 +53,6 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("accessToken", token)));
     }
 
-    @PostMapping(path = "/logout")
-    public ResponseEntity<ResponseMessage> logout(Authentication authentication, HttpServletRequest httpServletRequest) {
-
-        log.info("logout request by {} ", authentication.getName());
-        authTokenService.logout(authentication, httpServletRequest);
-        log.info("logout successful for user {} ", authentication.getName());
-
-        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
-    }
-
     @PostMapping(path = "/activate")
     public ResponseEntity<ResponseMessage> activateUser(@RequestParam("token") @NotBlank String token) {
 
@@ -91,7 +81,7 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("message", "password reset link sent to " + email)));
     }
 
-    @PutMapping(path = "/reset-password")
+    @PutMapping(path = "/password-reset")
     public ResponseEntity<ResponseMessage> passWordReset(@RequestBody @Valid PasswordModel passwordModel,
                                                          @RequestParam("hash") String passwordHash) {
         authTokenService.resetPassword(passwordModel, passwordHash);

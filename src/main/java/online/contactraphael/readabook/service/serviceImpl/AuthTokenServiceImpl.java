@@ -88,7 +88,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     public void logout(Authentication authentication, HttpServletRequest httpServletRequest) {
 
         Optional<String> tokenOptional = Optional.ofNullable(((JwtAuthenticationToken) authentication)
-                .getToken().getTokenValue());
+                .getToken()
+                .getTokenValue());
 
         String user = authentication.getName();
         String requestRemoteAddress = httpServletRequest.getRemoteAddr();

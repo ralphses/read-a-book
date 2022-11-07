@@ -13,7 +13,7 @@ import online.contactraphael.readabook.service.service.NotificationService;
 import online.contactraphael.readabook.service.service.PaymentService;
 import online.contactraphael.readabook.service.service.TransactionsService;
 import online.contactraphael.readabook.utility.CustomWebClient;
-import online.contactraphael.readabook.utility.event.logout.NewPaymentSuccessEvent;
+import online.contactraphael.readabook.utility.event.paymentSuccess.NewPaymentSuccessEvent;
 import online.contactraphael.readabook.utility.monnify.InitPaymentResponse;
 import online.contactraphael.readabook.utility.monnify.MonnifyConfig;
 import online.contactraphael.readabook.utility.monnify.MonnifyCredential;

@@ -23,6 +23,11 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -30,11 +35,19 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ApplicationSecurity {
 
     private final RsaKeyProperties rsaKeyProperties;
+    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
     private final CustomUserDetialsService customUserDetialsService;
     private final String[] WHITELISTED_URLS =
             {
                     "/auth/**",
-                    "/api/v1/**"
+                    "api/v1/book/add",
+                    "api/v1/book/upload",
+                    "api/v1/book/download",
+                    "api/v1/book/get",
+                    "api/v1/book/all/**",
+                    "api/v1/cart/**",
+                    "api/v1/pay/**",
+                    "api/v1/wishlist/**"
             };
 
     @Bean
@@ -42,6 +55,7 @@ public class ApplicationSecurity {
 
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
 
                 .authorizeRequests(auth -> auth
                         .antMatchers(WHITELISTED_URLS).permitAll()
@@ -50,9 +64,26 @@ public class ApplicationSecurity {
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(customUserDetialsService)
+
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessHandler(customLogoutSuccessHandler))
+
                 .httpBasic(Customizer.withDefaults())
 
                 .build();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedHeaders(List.of("Authorization"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+
+        return source;
     }
 
     @Bean

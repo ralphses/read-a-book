@@ -1,4 +1,4 @@
-package online.contactraphael.readabook.utility.event.logout;
+package online.contactraphael.readabook.utility.event.paymentSuccess;
 
 import lombok.Getter;
 import lombok.Setter;
