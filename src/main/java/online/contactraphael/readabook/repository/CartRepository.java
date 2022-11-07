@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface CartListRepository extends JpaRepository<Cart, Long> {
+public interface CartRepository extends JpaRepository<Cart, Long> {
 
     @Query(value = "SELECT cart FROM Cart cart WHERE cart.userAddress = ?1")
     Optional<Cart> findByUserAddress (String userAddress);

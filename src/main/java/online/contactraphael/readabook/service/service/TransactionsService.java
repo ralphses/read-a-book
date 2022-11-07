@@ -2,7 +2,7 @@ package online.contactraphael.readabook.service.service;
 
 import online.contactraphael.readabook.model.payment.Transactions;
 
-public interface UploadPaymentService {
+public interface TransactionsService {
 
     void newPayment(
             String bookId,

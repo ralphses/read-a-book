@@ -1,15 +1,16 @@
 package online.contactraphael.readabook.service.service;
 
-import online.contactraphael.readabook.model.Cart;
+import online.contactraphael.readabook.model.dtos.monnify.NewMonnifyPaymentRequest;
 import online.contactraphael.readabook.model.dtos.monnify.NewPaymentRequest;
 import online.contactraphael.readabook.utility.monnify.InitPaymentResponse;
-import online.contactraphael.readabook.utility.monnify.webhook.NewPaymentNotificationRequest;
+import online.contactraphael.readabook.utility.monnify.webhook.NewMonnifyPaymentNotificationRequest;
 
 public interface PaymentService {
-    InitPaymentResponse initPayment(NewPaymentRequest newPaymentRequest);
-    InitPaymentResponse initPayment(Cart cart, String email);
+    InitPaymentResponse initNewBookPayment(NewPaymentRequest newPaymentRequest);
 
-    void updatePayment(NewPaymentNotificationRequest newPaymentNotificationRequest);
+    void updatePayment(NewMonnifyPaymentNotificationRequest newMonnifyPaymentNotificationRequest);
 
-    void confirmPayment(String paymentReference);
+    String confirmPayment(String paymentReference);
+
+    InitPaymentResponse initializeNewMonnifyPayment(NewMonnifyPaymentRequest newMonnifyPaymentRequest);
 }

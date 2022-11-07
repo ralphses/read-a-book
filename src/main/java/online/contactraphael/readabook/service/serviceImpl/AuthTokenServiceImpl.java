@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import online.contactraphael.readabook.exception.ResourceNotFoundException;
 import online.contactraphael.readabook.exception.UnauthorizedUserException;
 import online.contactraphael.readabook.model.AuthToken;
+import online.contactraphael.readabook.model.dtos.PasswordModel;
 import online.contactraphael.readabook.repository.AuthTokenRepository;
 import online.contactraphael.readabook.service.service.AuthTokenService;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private final AuthTokenRepository authTokenRepository;
+
+    private final PasswordResetTokenService passwordResetTokenService;
+    private final CartService cartService;
+    private final WishListService wishListService;
 
 
     @Override
@@ -109,6 +114,9 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             authToken.setIsLoggedIn(false);
             authToken.setIsValid(false);
 
+            cartService.clearCart(httpServletRequest);
+            wishListService.clearList(httpServletRequest);
+
             log.info("User {} logged out from address {} ", user, requestRemoteAddress);
 
         }catch (JwtException e) {
@@ -124,6 +132,20 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     public boolean validateToken(String token) {
         AuthToken authToken = findByToken(token);
         return authToken.getIsLoggedIn() && authToken.getIsValid();
+    }
+
+    @Override
+    public void clearLogin() {
+
+        authTokenRepository.findAll().stream()
+                .filter(authToken -> authToken.getExpiresAt().isBefore(Instant.now()))
+                .forEach(authTokenRepository::delete);
+
+    }
+
+    @Override
+    public void resetPassword(PasswordModel passwordModel, String passwordHash) {
+        passwordResetTokenService.resetPassword(passwordHash, passwordModel);
     }
 
     private AuthToken findByToken(String token) {

@@ -4,11 +4,11 @@ import online.contactraphael.readabook.model.book.Book;
 import online.contactraphael.readabook.model.dtos.GeneralBookUploadRequest;
 import online.contactraphael.readabook.model.dtos.NewBookUploadRequest;
 import lombok.RequiredArgsConstructor;
+import online.contactraphael.readabook.model.dtos.ShortBook;
 import online.contactraphael.readabook.model.response.FileUploadResponse;
 import online.contactraphael.readabook.service.service.BookService;
 import online.contactraphael.readabook.utility.ResponseMessage;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -46,7 +45,7 @@ public class BookController {
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("bookId", newBookId)));
     }
 
-    @PostMapping(path = "/add/one")
+    @PostMapping(path = "/upload")
     public ResponseEntity<ResponseMessage> upload(@RequestParam("paymentReference") @NotBlank String paymentReference,
                                                   @RequestParam(value = "bookCode", required = false) String bookCode,
                                                   @RequestPart("file") MultipartFile book) {
@@ -62,16 +61,29 @@ public class BookController {
                 .body(book.getResource());
     }
 
-    @GetMapping(path = "/get/{page}")
-    public ResponseEntity<ResponseMessage> getAllBooks(@PathVariable Integer page) {
-        List<Book> books = bookService.getAll(page);
-        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("books", books)));
-    }
-
-    @GetMapping(path = "/get/one")
+    @GetMapping(path = "/get")
     public ResponseEntity<ResponseMessage> getAllBooks(@RequestParam("bookCode") @NotBlank String bookCode) {
         Book book = bookService.findByBookId(bookCode);
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("books", book)));
     }
 
+    @PutMapping(path = "/update/{bookCode}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<ResponseMessage> updateBook(@PathVariable("bookCode") @NotBlank String bookCode,
+                                                      @RequestBody @Valid GeneralBookUploadRequest generalBookUploadRequest) {
+        bookService.updateBook(bookCode, generalBookUploadRequest);
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
+    }
+
+    @GetMapping(path = "/all/{page}")
+    public ResponseEntity<ResponseMessage> getAllBooks(@PathVariable Integer page) {
+        List<ShortBook> books = bookService.findAll(page);
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("books", books)));
+    }
+
+    @PutMapping(path = "/de-activate/{bookCode}")
+    public ResponseEntity<ResponseMessage> deactivateBook(@PathVariable String bookCode) {
+        bookService.deactivateBook(bookCode);
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
+    }
 }

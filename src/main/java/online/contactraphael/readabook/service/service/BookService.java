@@ -3,6 +3,7 @@ package online.contactraphael.readabook.service.service;
 import online.contactraphael.readabook.model.book.Book;
 import online.contactraphael.readabook.model.dtos.GeneralBookUploadRequest;
 import online.contactraphael.readabook.model.dtos.NewBookUploadRequest;
+import online.contactraphael.readabook.model.dtos.ShortBook;
 import online.contactraphael.readabook.model.response.FileUploadResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,4 +22,10 @@ public interface BookService {
     List<Book> getAll(Integer page);
 
     Map<String, Object> addNewBook(GeneralBookUploadRequest generalBookUploadRequest);
+
+    void updateBook(String bookCode, GeneralBookUploadRequest generalBookUploadRequest);
+
+    List<ShortBook> findAll(Integer page);
+
+    void deactivateBook(String bookCode);
 }

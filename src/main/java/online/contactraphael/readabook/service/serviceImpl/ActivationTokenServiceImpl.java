@@ -9,7 +9,7 @@ import online.contactraphael.readabook.model.user.AppUser;
 import online.contactraphael.readabook.repository.ActivationTokenRepository;
 import online.contactraphael.readabook.service.service.ActivationTokenService;
 import online.contactraphael.readabook.service.service.AppUserService;
-import online.contactraphael.readabook.utility.event.RegistrationCompleteEvent;
+import online.contactraphael.readabook.utility.event.registration.RegistrationCompleteEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package online.contactraphael.readabook.utility.event;
+package online.contactraphael.readabook.utility.event.registration;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class RegistrationCompleteEventListener implements ApplicationListener<Re
                 .toUriString();
 
 
-        notificationService.sendEmailNotification(List.of(appUser.getEmail()), sender, urlLink, subject);
+        notificationService.sendEmailNotification(List.of(appUser.getEmail()), sender, urlLink, subject, null);
 
         activationTokenService.newToken(token, appUser, SIGN_UP);
 

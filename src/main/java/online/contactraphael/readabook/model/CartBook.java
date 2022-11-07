@@ -22,7 +22,6 @@ public class CartBook {
     private Long id;
     private Integer quantity;
 
-    @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     private Book book;
 }

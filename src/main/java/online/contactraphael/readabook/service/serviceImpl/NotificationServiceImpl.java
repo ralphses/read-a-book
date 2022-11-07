@@ -3,6 +3,7 @@ package online.contactraphael.readabook.service.serviceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import online.contactraphael.readabook.exception.EmailNotSentException;
+import online.contactraphael.readabook.model.FileAttachment;
 import online.contactraphael.readabook.service.service.NotificationService;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -24,9 +26,8 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public void sendEmailNotification(List<String> emails, String sender, String message, String subject) {
-        log.info(message);
-        sendEmail(emails, sender, message, subject);
+    public void sendEmailNotification(List<String> emails, String sender, String message, String subject, FileAttachment attachment) {
+        sendEmail(emails, sender, message, subject, attachment);
 
     }
 
@@ -35,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
-    private void sendEmail(List<String> emails, String sender, String message, String subject) {
+    private void sendEmail(List<String> emails, String sender, String message, String subject, FileAttachment attachment) {
         String[] recipients = {emails.get(0)};
 
         try {
@@ -46,6 +47,10 @@ public class NotificationServiceImpl implements NotificationService {
             mimeMessageHelper.setTo(recipients);
             mimeMessageHelper.setSubject(subject);
             mimeMessageHelper.setFrom(sender);
+
+            if(attachment != null)
+                mimeMessageHelper.addAttachment(attachment.getFileName(), attachment.getFile());
+
 
             javaMailSender.send(mimeMessage);
 

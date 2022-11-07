@@ -9,6 +9,7 @@ import online.contactraphael.readabook.model.book.BookType;
 import online.contactraphael.readabook.model.book.BookUploader;
 import online.contactraphael.readabook.model.dtos.GeneralBookUploadRequest;
 import online.contactraphael.readabook.model.dtos.NewBookUploadRequest;
+import online.contactraphael.readabook.model.dtos.ShortBook;
 import online.contactraphael.readabook.model.payment.Transactions;
 import online.contactraphael.readabook.model.response.FileUploadResponse;
 import online.contactraphael.readabook.model.user.AppUser;
@@ -17,7 +18,7 @@ import online.contactraphael.readabook.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import online.contactraphael.readabook.repository.BookUploaderRepository;
 import online.contactraphael.readabook.service.service.BookService;
-import online.contactraphael.readabook.service.service.UploadPaymentService;
+import online.contactraphael.readabook.service.service.TransactionsService;
 import online.contactraphael.readabook.utility.uploads.FileManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +44,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final AppUserRepository appUserRepository;
-    private final UploadPaymentService uploadPaymentService;
+    private final TransactionsService transactionsService;
     private final BookUploaderRepository bookUploaderRepository;
     private final FileManager fileManager;
 
@@ -95,7 +96,7 @@ public class BookServiceImpl implements BookService {
             throw new UnauthorizedUserException("Illegal upload with paymentReference " + paymentReference);
         }
 
-        Transactions transactions = uploadPaymentService.findByReference(paymentReference);
+        Transactions transactions = transactionsService.findByReference(paymentReference);
 
         boolean isWavedBook =
                 Objects.equals(transactions.getTransactionReference(), paymentReference) &&
@@ -188,7 +189,7 @@ public class BookServiceImpl implements BookService {
                 .toString().replace("-", "").substring(0, 8));
 
         //Create new waved payment
-        uploadPaymentService.newPayment(
+        transactionsService.newPayment(
                 bookId,
                 uploaderEmail,
                 paymentCoupon,
@@ -203,6 +204,39 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(newBook);
 
         return Map.of("bookCode", bookId, "paymentCoupon", paymentCoupon);
+    }
+
+    @Override
+    public void updateBook(String bookCode, GeneralBookUploadRequest generalBookUploadRequest) {
+
+        Book book = findByBookId(bookCode);
+
+        book.setAuthor(generalBookUploadRequest.author());
+        book.setEdition(generalBookUploadRequest.edition());
+        book.setYearPublished(generalBookUploadRequest.yearPublished());
+        book.setPrice(generalBookUploadRequest.amount());
+        book.setTitle(generalBookUploadRequest.title());
+        book.setSummary(generalBookUploadRequest.summary());
+        book.setLicence(generalBookUploadRequest.licence());
+        book.setNoOfPages(generalBookUploadRequest.noOfPages());
+    }
+
+    @Override
+    public List<ShortBook> findAll(Integer page) {
+        return
+                bookRepository.findAll(PageRequest.of(page-1, 20))
+                        .stream()
+                        .map(book -> ShortBook.builder()
+                                .title(book.getTitle())
+                                .code(book.getBookCode())
+                                .summary(book.getSummary())
+                                .build())
+                        .toList();
+    }
+
+    @Override
+    public void deactivateBook(String bookCode) {
+        findByBookId(bookCode).setBookStatus(INACTIVE);
     }
 
 

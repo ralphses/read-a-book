@@ -3,37 +3,39 @@ package online.contactraphael.readabook.service.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import online.contactraphael.readabook.exception.UnauthorizedUserException;
-import online.contactraphael.readabook.model.Cart;
 import online.contactraphael.readabook.model.book.Book;
-import online.contactraphael.readabook.model.book.BookStatus;
 import online.contactraphael.readabook.model.dtos.monnify.NewMonnifyPaymentRequest;
 import online.contactraphael.readabook.model.dtos.monnify.NewPaymentRequest;
 import online.contactraphael.readabook.model.payment.PaymentStatus;
 import online.contactraphael.readabook.model.payment.Transactions;
 import online.contactraphael.readabook.service.service.BookService;
+import online.contactraphael.readabook.service.service.NotificationService;
 import online.contactraphael.readabook.service.service.PaymentService;
-import online.contactraphael.readabook.service.service.UploadPaymentService;
+import online.contactraphael.readabook.service.service.TransactionsService;
 import online.contactraphael.readabook.utility.CustomWebClient;
+import online.contactraphael.readabook.utility.event.logout.NewPaymentSuccessEvent;
 import online.contactraphael.readabook.utility.monnify.InitPaymentResponse;
 import online.contactraphael.readabook.utility.monnify.MonnifyConfig;
 import online.contactraphael.readabook.utility.monnify.MonnifyCredential;
 import online.contactraphael.readabook.utility.monnify.MonnifyResponse;
 import online.contactraphael.readabook.utility.monnify.webhook.EventData;
-import online.contactraphael.readabook.utility.monnify.webhook.NewPaymentNotificationRequest;
+import online.contactraphael.readabook.utility.monnify.webhook.NewMonnifyPaymentNotificationRequest;
 import online.contactraphael.readabook.utility.monnify.webhook.Transaction;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.Instant;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import static online.contactraphael.readabook.configuration.main.AppConfig.PAYMENT_REDIRECT_URL;
+import static online.contactraphael.readabook.model.book.BookStatus.ACTIVE;
 import static online.contactraphael.readabook.model.payment.PaymentStatus.PAID;
-import static online.contactraphael.readabook.model.payment.PaymentStatus.PENDING;
 import static online.contactraphael.readabook.utility.monnify.MonnifyConfig.*;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -42,25 +44,25 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class PaymentServiceImpl implements PaymentService {
+public class MonnifyPaymentProcessor implements PaymentService {
 
     private final CustomWebClient webClient;
+    private final HttpServletRequest httpServletRequest;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final MonnifyCredential monnifyCredential;
-    private final UploadPaymentService uploadPaymentService;
+    private final TransactionsService transactionsService;
+    private final NotificationService notificationService;
     private final BookService bookService;
 
+
     @Override
-    public InitPaymentResponse initPayment(NewPaymentRequest newPaymentRequest) {
+    public InitPaymentResponse initNewBookPayment(NewPaymentRequest newPaymentRequest) {
 
         NewMonnifyPaymentRequest newMonnifyPaymentRequest = buildRequest(newPaymentRequest);
-
-        MonnifyResponse response = (MonnifyResponse) webClient.sendRequest(
-                MONNIFY_BASE_URL, INIT_TRANSACTION_URL, POST, newMonnifyPaymentRequest, getAuthorizationHeader(), APPLICATION_JSON, MonnifyResponse.class);
-
-        InitPaymentResponse initPaymentResponse = new ObjectMapper().convertValue(response.getResponseBody(), InitPaymentResponse.class);
+        InitPaymentResponse initPaymentResponse = initializeNewMonnifyPayment(newMonnifyPaymentRequest);
 
         //Save new uploadPaymentFee
-        uploadPaymentService.newPayment(
+        transactionsService.newPayment(
                 newPaymentRequest.bookId(),
                 newPaymentRequest.userEmail(),
                 initPaymentResponse.getPaymentReference(),
@@ -75,48 +77,15 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public InitPaymentResponse initPayment(Cart cart, String email) {
+    public void updatePayment(NewMonnifyPaymentNotificationRequest newMonnifyPaymentNotificationRequest) {
 
-        NewMonnifyPaymentRequest newMonnifyPaymentRequest = NewMonnifyPaymentRequest.builder()
-                .redirectUrl(PAYMENT_REDIRECT_URL)
-                .customerName(email)
-                .paymentReference(UUID.randomUUID().toString().replace("-", ""))
-                .paymentMethods(ALLOWED_PAYMENT_METHODS)
-                .paymentDescription("Book purchase")
-                .customerEmail(email)
-                .currencyCode(NGN_CURRENCY_CODE)
-                .contractCode(CONTRACT_CODE)
-                .amount(cart.getTotalAmount())
-                .build();
-
-        MonnifyResponse response = (MonnifyResponse) webClient.sendRequest(
-                MONNIFY_BASE_URL, INIT_TRANSACTION_URL, POST, newMonnifyPaymentRequest, getAuthorizationHeader(), APPLICATION_JSON, MonnifyResponse.class);
-
-        InitPaymentResponse initPaymentResponse = new ObjectMapper().convertValue(response.getResponseBody(), InitPaymentResponse.class);
-
-        uploadPaymentService.newPayment(
-                "",
-                email,
-                initPaymentResponse.getPaymentReference(),
-                initPaymentResponse.getTransactionReference(),
-                cart.getTotalAmount(),
-                null,
-                "PENDING",
-                "Book purchase fee");
-
-        return  initPaymentResponse;
-    }
-
-    @Override
-    public void updatePayment(NewPaymentNotificationRequest newPaymentNotificationRequest) {
-
-        EventData eventData = newPaymentNotificationRequest.getEventData();
+        EventData eventData = newMonnifyPaymentNotificationRequest.getEventData();
 
         String transactionReference = eventData.getTransactionReference();
         String incomingPaymentStatus = eventData.getPaymentStatus();
         double amount = eventData.getAmountPaid();
 
-        Transactions feePayment = uploadPaymentService.findByTransactionReference(transactionReference);
+        Transactions feePayment = transactionsService.findByTransactionReference(transactionReference);
 
         MonnifyResponse monnifyResponse = (MonnifyResponse) webClient.sendRequest(
                 MONNIFY_BASE_URL,
@@ -144,9 +113,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public void confirmPayment(String paymentReference) {
-        Transactions thisPayment = uploadPaymentService.findByReference(paymentReference);
+    public InitPaymentResponse initializeNewMonnifyPayment(NewMonnifyPaymentRequest newMonnifyPaymentRequest) {
 
+        MonnifyResponse response = (MonnifyResponse) webClient.sendRequest(
+                MONNIFY_BASE_URL,
+                INIT_TRANSACTION_URL,
+                POST,
+                newMonnifyPaymentRequest,
+                getAuthorizationHeader(),
+                APPLICATION_JSON,
+                MonnifyResponse.class);
+
+        return new ObjectMapper().convertValue(response.getResponseBody(), InitPaymentResponse.class);
+
+    }
+
+    @Override
+    public String confirmPayment(String paymentReference) {
+
+        Transactions thisPayment = transactionsService.findByReference(paymentReference);
+
+        //Send request to monnify
         MonnifyResponse monnifyResponse = (MonnifyResponse) webClient.sendRequest(
                 MONNIFY_BASE_URL,
                 TRANSACTION_STATUS_URL+thisPayment.getTransactionReference(),
@@ -156,20 +143,39 @@ public class PaymentServiceImpl implements PaymentService {
                 APPLICATION_JSON,
                 MonnifyResponse.class);
 
+        //GEt original transaction from monnify
         Transaction confirmTransaction = new ObjectMapper().convertValue(monnifyResponse.getResponseBody(), Transaction.class);
-        String confirmPaymentStatus = confirmTransaction.getPaymentStatus();
-        
+
         boolean validRequest =
                         Objects.equals(thisPayment.getPaymentReference(), confirmTransaction.getPaymentReference()) &&
-                        Objects.equals(confirmPaymentStatus, "PAID") &&
+                        Objects.equals(confirmTransaction.getPaymentStatus(), "PAID") &&
                         Double.compare(thisPayment.getAmountPaid(), Double.parseDouble(confirmTransaction.getAmountPaid())) == 0;
 
         if(validRequest) {
+
             thisPayment.setPaymentStatus(PAID);
             thisPayment.setPaymentMethod(confirmTransaction.getPaymentMethod());
 
             Book thisBook = bookService.findByBookId(thisPayment.getBookId());
-            thisBook.setBookStatus(BookStatus.ACTIVE);
+
+            if(thisPayment.getPurpose().equals("Book upload fee")) {
+
+                thisBook.setBookStatus(ACTIVE);
+
+            } else if (thisPayment.getPurpose().equals("Book purchase fee")) {
+
+                //Todo: send book download URL to customer
+                notificationService.sendEmailNotification(
+                        List.of(thisPayment.getOwnerEmail()),
+                        "info@awazone.net",
+                        "Get your book here " + thisBook.getUrl(),
+                        "Book purchase",
+                        null);
+
+                //Clear cart
+                applicationEventPublisher.publishEvent(new NewPaymentSuccessEvent(httpServletRequest.getRemoteAddr()));
+            }
+            return paymentReference;
         }
         else throw new UnauthorizedUserException("Invalid payload");
     }

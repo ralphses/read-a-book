@@ -1,4 +1,4 @@
-package online.contactraphael.readabook.utility.event;
+package online.contactraphael.readabook.utility.event.registration;
 
 import lombok.Getter;
 import lombok.Setter;

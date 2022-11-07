@@ -16,7 +16,8 @@ public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler({
             UnauthorizedUserException.class,
-            UsernameNotFoundException.class})
+            UsernameNotFoundException.class,
+            UnsuccessfulRequestException.class})
     public ResponseEntity<ResponseMessage> unauthorizedUserExceptionHandler
             (RuntimeException runtimeException, WebRequest webRequest) {
 
@@ -34,7 +35,9 @@ public class ExceptionHandler {
                 .body(new ResponseMessage("failed", 1, Map.of("message", resourceNotFoundException.getMessage())));
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(InvalidRequestParamException.class)
+    @org.springframework.web.bind.annotation.ExceptionHandler({
+            InvalidRequestParamException.class,
+            FileStorageException.class})
     public ResponseEntity<ResponseMessage> badRequestException(RuntimeException runtimeException, WebRequest webRequest) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

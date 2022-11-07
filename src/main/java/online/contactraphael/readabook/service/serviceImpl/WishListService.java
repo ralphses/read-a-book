@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -20,16 +21,30 @@ public class WishListService {
     private final BookService bookService;
 
     public void addBook(String bookCode, HttpServletRequest httpServletRequest) {
-        Book book = bookService.findByBookId(bookCode);
 
-        String userAddress = httpServletRequest.getRemoteAddr();
+        getBooks(httpServletRequest.getRemoteAddr())
+                .add(bookService.findByBookId(bookCode));
 
-        WishList wishList = wishListRepository.findByUserAddress(userAddress)
+    }
+
+    public void removeBook(String bookCode, HttpServletRequest httpServletRequest) {
+
+        getBooks(httpServletRequest.getRemoteAddr())
+                .remove(bookService.findByBookId(bookCode));
+    }
+
+    public Set<Book> getBooks(String userAddress) {
+        return wishListRepository.findByUserAddress(userAddress)
                 .orElse(wishListRepository.save(WishList.builder()
                         .userAddress(userAddress)
+                        .books(Set.of())
                         .createdAt(Instant.now())
-                        .build()));
+                        .build())).getBooks();
+    }
 
-        wishList.getBooks().add(book);
+    public void clearList(HttpServletRequest httpServletRequest) {
+        wishListRepository
+                .findByUserAddress(httpServletRequest.getRemoteAddr())
+                .ifPresent(wishListRepository::delete);
     }
 }

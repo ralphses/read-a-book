@@ -1,16 +1,19 @@
 package online.contactraphael.readabook.controller;
 
-import online.contactraphael.readabook.model.dtos.UserRegistrationRequestRequest;
+import online.contactraphael.readabook.model.dtos.PasswordModel;
+import online.contactraphael.readabook.model.dtos.UserRegistrationRequest;
 import online.contactraphael.readabook.model.user.AppUser;
 import online.contactraphael.readabook.service.service.ActivationTokenService;
 import online.contactraphael.readabook.service.service.AppUserService;
-import online.contactraphael.readabook.service.serviceImpl.AuthTokenServiceImpl;
+import online.contactraphael.readabook.service.service.AuthTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import online.contactraphael.readabook.utility.ResponseMessage;
-import online.contactraphael.readabook.utility.event.RegistrationCompleteEvent;
+import online.contactraphael.readabook.utility.event.passwordReset.PasswordResetEvent;
+import online.contactraphael.readabook.utility.event.registration.RegistrationCompleteEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,36 +28,36 @@ import java.util.Map;
 @RequestMapping(path = "/auth")
 public class AuthController {
 
-    private final AuthTokenServiceImpl authTokenServiceImpl;
+    private final AuthTokenService authTokenService;
     private final ActivationTokenService activationTokenService;
     private final AppUserService appUserService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseMessage> addUser(
-            @RequestBody @Valid UserRegistrationRequestRequest userRegistrationRequestRequest) {
+            @RequestBody @Valid UserRegistrationRequest userRegistrationRequest) {
 
-        AppUser appUser = appUserService.addUser(userRegistrationRequestRequest);
+        AppUser appUser = appUserService.addUser(userRegistrationRequest);
 
         applicationEventPublisher.publishEvent(new RegistrationCompleteEvent(appUser));
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
     }
 
     @PostMapping(path = "/login")
-    public String login(Authentication authentication, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ResponseMessage> login(Authentication authentication, HttpServletRequest httpServletRequest) {
 
         log.debug("Token requested for user {} ", authentication.getName());
-        String token = authTokenServiceImpl.login(authentication, httpServletRequest);
+        String token = authTokenService.login(authentication, httpServletRequest);
         log.debug("Token granted for user {} ", authentication.getName());
 
-        return token;
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("accessToken", token)));
     }
 
     @PostMapping(path = "/logout")
     public ResponseEntity<ResponseMessage> logout(Authentication authentication, HttpServletRequest httpServletRequest) {
 
         log.info("logout request by {} ", authentication.getName());
-        authTokenServiceImpl.logout(authentication, httpServletRequest);
+        authTokenService.logout(authentication, httpServletRequest);
         log.info("logout successful for user {} ", authentication.getName());
 
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
@@ -80,4 +83,18 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
     }
 
+    @PostMapping(path = "/password-reset")
+    @PreAuthorize("#email == authentication.principal")
+    public ResponseEntity<ResponseMessage> initPasswordReset(@RequestParam("email") @NotBlank String email) {
+
+        applicationEventPublisher.publishEvent(new PasswordResetEvent(email));
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of("message", "password reset link sent to " + email)));
+    }
+
+    @PutMapping(path = "/reset-password")
+    public ResponseEntity<ResponseMessage> passWordReset(@RequestBody @Valid PasswordModel passwordModel,
+                                                         @RequestParam("hash") String passwordHash) {
+        authTokenService.resetPassword(passwordModel, passwordHash);
+        return ResponseEntity.ok(new ResponseMessage("success", 0, Map.of()));
+    }
 }

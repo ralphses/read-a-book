@@ -6,7 +6,7 @@ import online.contactraphael.readabook.exception.ResourceNotFoundException;
 import online.contactraphael.readabook.model.payment.PaymentStatus;
 import online.contactraphael.readabook.model.payment.Transactions;
 import online.contactraphael.readabook.repository.UploadPaymentRepository;
-import online.contactraphael.readabook.service.service.UploadPaymentService;
+import online.contactraphael.readabook.service.service.TransactionsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +16,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UploadPaymentServiceImpl implements UploadPaymentService {
+public class TransactionsServiceImpl implements TransactionsService {
 
     private final UploadPaymentRepository uploadPaymentRepository;
 
@@ -31,11 +31,11 @@ public class UploadPaymentServiceImpl implements UploadPaymentService {
             String paymentStatus,
             String purpose) {
 
-        Optional<Transactions> uploadFeePaymentOptional = checkPayment(bookId);
+        Optional<Transactions> transactionsOptional = checkPayment(bookId);
 
-        if(uploadFeePaymentOptional.isPresent()) {
+        if(transactionsOptional.isPresent()) {
 
-            Transactions oldPayment = uploadFeePaymentOptional.get();
+            Transactions oldPayment = transactionsOptional.get();
 
             if(!oldPayment.getPaymentStatus().equals(PaymentStatus.PAID)) {
                 oldPayment.setAmountPaid(amountPaid);
@@ -48,7 +48,7 @@ public class UploadPaymentServiceImpl implements UploadPaymentService {
         }
         else {
 
-            Transactions newUploadPayment = Transactions.builder()
+            Transactions transactions = Transactions.builder()
                     .transactionReference(transactionReference)
                     .paymentReference(paymentReference)
                     .amountPaid(amountPaid)
@@ -60,7 +60,7 @@ public class UploadPaymentServiceImpl implements UploadPaymentService {
                     .bookId(bookId)
                     .build();
 
-            uploadPaymentRepository.save(newUploadPayment);
+            uploadPaymentRepository.save(transactions);
         }
 
     }

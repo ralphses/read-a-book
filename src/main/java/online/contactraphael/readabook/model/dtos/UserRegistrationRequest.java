@@ -4,9 +4,8 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 
-public record UserRegistrationRequestRequest(
+public record UserRegistrationRequest(
 
 //        @Pattern(regexp = "\\[]", message = "Enter a valid name")
         @NotBlank(message = "Full name required")
