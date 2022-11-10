@@ -1,4 +1,4 @@
-package online.contactraphael.readabook.model;
+package online.contactraphael.readabook.model.cart;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,8 +2,8 @@ package online.contactraphael.readabook.service.serviceImpl;
 
 import online.contactraphael.readabook.exception.InvalidRequestParamException;
 import online.contactraphael.readabook.exception.ResourceNotFoundException;
-import online.contactraphael.readabook.model.Cart;
-import online.contactraphael.readabook.model.CartBook;
+import online.contactraphael.readabook.model.cart.Cart;
+import online.contactraphael.readabook.model.cart.CartBook;
 import online.contactraphael.readabook.model.book.Book;
 import online.contactraphael.readabook.model.book.BookStatus;
 import online.contactraphael.readabook.model.book.BookType;

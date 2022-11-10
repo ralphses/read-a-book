@@ -1,6 +1,6 @@
 package online.contactraphael.readabook.repository;
 
-import online.contactraphael.readabook.model.CartBook;
+import online.contactraphael.readabook.model.cart.CartBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
