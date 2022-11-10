@@ -14,7 +14,6 @@ public interface TransactionsService {
             String paymentStatus,
             String purpose);
 
-    void updatePaymentStatus(String paymentReference, String paymentStatus);
     Transactions findByReference(String paymentReference);
 
     Transactions findByTransactionReference(String transactionReference);

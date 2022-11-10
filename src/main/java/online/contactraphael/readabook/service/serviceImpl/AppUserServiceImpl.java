@@ -64,17 +64,22 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public List<ShortUser> getAll(Integer page) {
 
-        return
-                appUserRepository
-                .findAll(PageRequest.of(page-1, 20))
-                .map(appUser -> ShortUser.builder()
-                        .fullName(appUser.getFullName())
-                        .id(appUser.getId())
-                        .email(appUser.getEmail())
-                        .userRole(appUser.getUserRole())
-                        .isAccountNonLocked(appUser.getIsAccountNonLocked())
-                        .build())
-                .getContent();
+        try {
+            return
+                    appUserRepository
+                            .findAll(PageRequest.of(page-1, 20))
+                            .map(appUser -> ShortUser.builder()
+                                    .fullName(appUser.getFullName())
+                                    .id(appUser.getId())
+                                    .email(appUser.getEmail())
+                                    .userRole(appUser.getUserRole())
+                                    .isAccountNonLocked(appUser.getIsAccountNonLocked())
+                                    .build())
+                            .stream().toList();
+
+        }catch (Exception exception) {
+            throw new InvalidRequestParamException("invalid page number");
+        }
     }
 
     @Override

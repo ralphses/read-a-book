@@ -5,7 +5,7 @@ import online.contactraphael.readabook.exception.InvalidRequestParamException;
 import online.contactraphael.readabook.exception.ResourceNotFoundException;
 import online.contactraphael.readabook.model.payment.PaymentStatus;
 import online.contactraphael.readabook.model.payment.Transactions;
-import online.contactraphael.readabook.repository.UploadPaymentRepository;
+import online.contactraphael.readabook.repository.TransactionsRepository;
 import online.contactraphael.readabook.service.service.TransactionsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TransactionsServiceImpl implements TransactionsService {
 
-    private final UploadPaymentRepository uploadPaymentRepository;
+    private final TransactionsRepository transactionsRepository;
 
     @Override
     public void newPayment(
@@ -60,36 +60,26 @@ public class TransactionsServiceImpl implements TransactionsService {
                     .bookId(bookId)
                     .build();
 
-            uploadPaymentRepository.save(transactions);
+            transactionsRepository.save(transactions);
         }
 
     }
 
     @Override
-    public void updatePaymentStatus(String paymentReference, String paymentStatus) {
-
-        Transactions transactions = uploadPaymentRepository.findByPaymentReference(paymentReference)
-                .orElseThrow(() -> new ResourceNotFoundException("Reference not found " + paymentReference));
-
-        if(!transactions.getPaymentStatus().name().equalsIgnoreCase("SUCCESS"))
-            transactions.setPaymentStatus(PaymentStatus.valueOf(paymentStatus));
-    }
-
-    @Override
     public Transactions findByReference(String paymentReference) {
         return
-                uploadPaymentRepository.findByPaymentReference(paymentReference)
+                transactionsRepository.findByPaymentReference(paymentReference)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid payment reference " + paymentReference));
     }
 
     @Override
     public Transactions findByTransactionReference(String transactionReference) {
         return
-                uploadPaymentRepository.findByTransactionReference(transactionReference)
+                transactionsRepository.findByTransactionReference(transactionReference)
                         .orElseThrow(() -> new ResourceNotFoundException("Invalid payment reference " + transactionReference));
     }
 
     private Optional<Transactions> checkPayment(String bookId) {
-        return uploadPaymentRepository.findByBookId(bookId);
+        return transactionsRepository.findByBookId(bookId);
     }
 }

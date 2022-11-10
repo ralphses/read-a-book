@@ -107,6 +107,7 @@ public class CartService {
         CartBook cartBookByBookCode = getCartBookByBookCode(bookCode);
 
         Cart cart = getCartByAddress(httpServletRequest);
+
         cart.setTotalAmount(cart.getTotalAmount() - cartBookByBookCode.getQuantity() * cartBookByBookCode.getBook().getPrice());
         cart.getBooks().remove(cartBookByBookCode);
 

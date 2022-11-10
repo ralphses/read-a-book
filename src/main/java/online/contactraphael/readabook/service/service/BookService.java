@@ -19,8 +19,6 @@ public interface BookService {
 
     FileUploadResponse fetchBook(HttpServletRequest httpServletRequest, String bookCode);
 
-    List<Book> getAll(Integer page);
-
     Map<String, Object> addNewBook(GeneralBookUploadRequest generalBookUploadRequest);
 
     void updateBook(String bookCode, GeneralBookUploadRequest generalBookUploadRequest);

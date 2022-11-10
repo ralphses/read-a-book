@@ -39,7 +39,8 @@ public class PasswordResetTokenService {
                 .userEmail(email)
                 .build();
 
-        return passwordResetTokenRepository.save(passwordResetToken).getPasswordHash();
+        passwordResetTokenRepository.save(passwordResetToken);
+        return passwordResetToken.getPasswordHash();
     }
 
     public void resetPassword(String passwordHash, PasswordModel passwordModel) {

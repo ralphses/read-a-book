@@ -21,7 +21,6 @@ import online.contactraphael.readabook.service.service.BookService;
 import online.contactraphael.readabook.service.service.TransactionsService;
 import online.contactraphael.readabook.utility.uploads.FileManager;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -146,18 +145,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> getAll(Integer page) {
-        Pageable pageable = PageRequest.of(page-1, 10);
-        return bookRepository.findAll(pageable).getContent();
-    }
-
-    @Override
     public Map<String, Object> addNewBook(GeneralBookUploadRequest generalBookUploadRequest) {
 
         String bookId = newBookId();
         String fileName = bookId + ".pdf";
 
-        String downloadUrl = getFileDownloadUrl(fileName);
+        String downloadUrl = "getFileDownloadUrl(fileName)";
         String uploaderEmail = generalBookUploadRequest.email();
         String bookTitle = generalBookUploadRequest.title();
 
@@ -223,15 +216,20 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<ShortBook> findAll(Integer page) {
-        return
-                bookRepository.findAll(PageRequest.of(page-1, 20))
-                        .stream()
-                        .map(book -> ShortBook.builder()
-                                .title(book.getTitle())
-                                .code(book.getBookCode())
-                                .summary(book.getSummary())
-                                .build())
-                        .toList();
+        try{
+            return
+                    bookRepository.findAll(PageRequest.of(page-1, 20))
+                            .stream()
+                            .map(book -> ShortBook.builder()
+                                    .title(book.getTitle())
+                                    .code(book.getBookCode())
+                                    .summary(book.getSummary())
+                                    .build())
+                            .toList();
+        }catch (NullPointerException exception) {
+            throw new ResourceNotFoundException("Invalid page " + page);
+        }
+
     }
 
     @Override

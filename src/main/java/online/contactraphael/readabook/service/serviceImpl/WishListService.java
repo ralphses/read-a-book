@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -34,12 +36,21 @@ public class WishListService {
     }
 
     public Set<Book> getBooks(String userAddress) {
-        return wishListRepository.findByUserAddress(userAddress)
-                .orElse(wishListRepository.save(WishList.builder()
-                        .userAddress(userAddress)
-                        .books(Set.of())
-                        .createdAt(Instant.now())
-                        .build())).getBooks();
+        Optional<WishList> wishListOptional = wishListRepository.findByUserAddress(userAddress);
+
+        if(wishListOptional.isPresent()) {
+            return wishListOptional.get().getBooks();
+        }
+        else {
+            WishList newWishlist = WishList.builder()
+                    .userAddress(userAddress)
+                    .books(new HashSet<>())
+                    .createdAt(Instant.now())
+                    .build();
+            wishListRepository.save(newWishlist);
+            return newWishlist.getBooks();
+        }
+
     }
 
     public void clearList(HttpServletRequest httpServletRequest) {

@@ -14,7 +14,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
-@EnableConfigurationProperties({RsaKeyProperties.class, FileStorage.class, MonnifyCredential.class})
+@EnableConfigurationProperties(
+		{
+				RsaKeyProperties.class,
+				FileStorage.class,
+				MonnifyCredential.class
+		})
 public class ReadABookApplication {
 
 	public static void main(String[] args) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UploadPaymentRepository extends JpaRepository<Transactions, Long> {
+public interface TransactionsRepository extends JpaRepository<Transactions, Long> {
 
     @Query(value = "SELECT pay FROM Transactions pay WHERE pay.paymentReference = ?1")
     Optional<Transactions> findByPaymentReference(String paymentReference);

@@ -77,7 +77,8 @@ public class ActivationTokenServiceImpl implements ActivationTokenService {
 
     }
 
-    private ActivationToken getActivationToken(String token) {
+    @Override
+    public ActivationToken getActivationToken(String token) {
         return activationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidRequestParamException("Invalid activation token " + token));
     }

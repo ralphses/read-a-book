@@ -7,7 +7,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
-import online.contactraphael.readabook.service.serviceImpl.CustomUserDetialsService;
+import online.contactraphael.readabook.service.serviceImpl.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -36,7 +36,7 @@ public class ApplicationSecurity {
 
     private final RsaKeyProperties rsaKeyProperties;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-    private final CustomUserDetialsService customUserDetialsService;
+    private final CustomUserDetailsService customUserDetailsService;
     private final String[] WHITELISTED_URLS =
             {
                     "/auth/**",
@@ -63,7 +63,7 @@ public class ApplicationSecurity {
 
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .userDetailsService(customUserDetialsService)
+                .userDetailsService(customUserDetailsService)
 
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
