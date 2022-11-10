@@ -47,7 +47,9 @@ public class ApplicationSecurity {
                     "api/v1/book/all/**",
                     "api/v1/cart/**",
                     "api/v1/pay/**",
-                    "api/v1/wishlist/**"
+                    "api/v1/wishlist/**",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**"
             };
 
     @Bean
