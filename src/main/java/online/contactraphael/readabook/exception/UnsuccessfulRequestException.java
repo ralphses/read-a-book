@@ -6,7 +6,4 @@ public class UnsuccessfulRequestException extends RuntimeException{
         super(message);
     }
 
-    public UnsuccessfulRequestException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

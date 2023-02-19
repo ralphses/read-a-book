@@ -44,7 +44,9 @@ public class AuthController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<ResponseMessage> login(Authentication authentication, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ResponseMessage> login(
+            Authentication authentication,
+            HttpServletRequest httpServletRequest) {
 
         log.debug("Token requested for user {} ", authentication.getName());
         String token = authTokenService.login(authentication, httpServletRequest);

@@ -148,7 +148,6 @@ public class BookServiceImpl implements BookService {
     public Map<String, Object> addNewBook(GeneralBookUploadRequest generalBookUploadRequest) {
 
         String bookId = newBookId();
-        String fileName = bookId + ".pdf";
 
         String downloadUrl = "getFileDownloadUrl(fileName)";
         String uploaderEmail = generalBookUploadRequest.email();
@@ -170,6 +169,7 @@ public class BookServiceImpl implements BookService {
         );
 
         String uploaderName = generalBookUploadRequest.name();
+
         BookUploader bookUploader = bookUploaderRepository.findByEmail(uploaderEmail)
                 .orElse(BookUploader.builder()
                         .email(uploaderEmail)

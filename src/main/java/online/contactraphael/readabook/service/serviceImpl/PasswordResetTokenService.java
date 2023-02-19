@@ -51,9 +51,11 @@ public class PasswordResetTokenService {
 
         passwordResetTokenRepository.findByPasswordHash(passwordHash)
                 .ifPresent(passwordResetToken -> {
+
                     if(passwordResetToken.getIsUsed() || passwordResetToken.getExpiresAt().isBefore(Instant.now())) {
                         throw new InvalidRequestParamException("Expired or used password link");
                     }
+
                     AppUser user = appUserService.findByEmail(passwordResetToken.getUserEmail());
                     user.setPassword(passwordEncoder.encode(passwordModel.password()));
 

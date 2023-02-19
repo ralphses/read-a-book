@@ -67,12 +67,15 @@ public class ActivationTokenServiceImpl implements ActivationTokenService {
     public void resendLink(String email) {
 
         Optional<ActivationToken> oldToken = activationTokenRepository.findByEmail(email);
+
         oldToken.ifPresent(activationTokenRepository::delete);
 
         AppUser appUser = appUserService.findByEmail(email);
+
         if (appUser.getIsAccountNonLocked()) {
             throw new InvalidRequestParamException("User already verified for " +email);
         }
+
         applicationEventPublisher.publishEvent(new RegistrationCompleteEvent(appUser));
 
     }

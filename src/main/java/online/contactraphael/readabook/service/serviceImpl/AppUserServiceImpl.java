@@ -26,6 +26,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
+
     @Override
     public AppUser addUser(UserRegistrationRequest userRegistrationRequest) {
 
@@ -39,6 +40,7 @@ public class AppUserServiceImpl implements AppUserService {
         String email = userRegistrationRequest.email();
 
         Optional<AppUser> userOptional = appUserRepository.findByEmail(email);
+
         if(userOptional.isPresent()) {
             throw new InvalidRequestParamException("User with email " + email + " already exist");
         }

@@ -62,7 +62,4 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void sendSms(List<String> phoneNumber, String sender, String message, String subject) {
-
-    }
 }

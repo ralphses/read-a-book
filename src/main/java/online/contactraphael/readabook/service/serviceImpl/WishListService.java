@@ -50,9 +50,7 @@ public class WishListService {
             wishListRepository.save(newWishlist);
             return newWishlist.getBooks();
         }
-
     }
-
     public void clearList(HttpServletRequest httpServletRequest) {
         wishListRepository
                 .findByUserAddress(httpServletRequest.getRemoteAddr())

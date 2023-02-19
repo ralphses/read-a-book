@@ -44,7 +44,5 @@ public class Book {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     private BookUploader uploadedBy;
 
-
-
 }
 

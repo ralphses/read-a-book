@@ -9,7 +9,6 @@ public record NewPaymentRequest(
         @NotBlank(message = "book ID required")
         String bookId,
 
-//        @NotBlank(message = "Amount required")
         double amount,
         String userEmail,
         String customerName

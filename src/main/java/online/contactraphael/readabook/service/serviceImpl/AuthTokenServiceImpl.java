@@ -61,7 +61,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(1, ChronoUnit.HOURS);
 
-        String scope = authentication.getAuthorities().stream()
+        String scope = authentication.getAuthorities()
+                .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
 
@@ -77,6 +78,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                 .build();
 
         String tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
+
         saveNewToken(user, now, expiresAt, remoteAddr, tokenValue);
 
         SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
@@ -104,6 +106,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         try {
 
             Jwt decodedJwtString = jwtDecoder.decode(requestTokenString);
+
             AuthToken authToken = findTokenByRemoteAddress(requestRemoteAddress);
 
             if(!isValidToken(authToken, requestRemoteAddress, decodedJwtString)) {
